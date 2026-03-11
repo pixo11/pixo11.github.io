@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Pulse.exe</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;700;800;900&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg: #06000f;
+      --surface: #0e0820;
+      --card: #13092e;
+      --accent1: #ff2df7;
+      --accent2: #00f0ff;
+      --accent3: #aaff00;
+      --text: #f0e6ff;
+      --muted: #7a6a99;
+      --glow1: rgba(255, 45, 247, 0.35);
+      --glow2: rgba(0, 240, 255, 0.25);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Space Mono', monospace;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* NOISE OVERLAY */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.5;
+    }
+
+    /* BACKGROUND BLOBS */
+    .blob {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(80px);
+      pointer-events: none;
+      z-index: 0;
+    }
+    .blob1 { width: 500px; height: 500px; background: var(--glow1); top: -150px; left: -100px; animation: drift1 12s ease-in-out infinite alternate; }
+    .blob2 { width: 400px; height: 400px; background: var(--glow2); bottom: -100px; right: -80px; animation: drift2 15s ease-in-out infinite alternate; }
+    .blob3 { width: 300px; height: 300px; background: rgba(170,255,0,0.12); top: 40%; left: 40%; animation: drift1 18s ease-in-out infinite alternate-reverse; }
+
+    @keyframes drift1 { from { transform: translate(0,0) scale(1); } to { transform: translate(40px, 30px) scale(1.1); } }
+    @keyframes drift2 { from { transform: translate(0,0) scale(1); } to { transform: translate(-30px, -40px) scale(1.15); } }
+
+    /* LAYOUT */
+    .container {
+      position: relative;
+      z-index: 1;
+      max-width: 780px;
+      margin: 0 auto;
+      padding: 60px 24px 80px;
+    }
+
+    /* HEADER */
+    header {
+      text-align: center;
+      margin-bottom: 60px;
+      animation: fadeUp 0.8s ease both;
+    }
+
+    .tag {
+      display: inline-block;
+      font-family: 'Space Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--accent2);
+      border: 1px solid var(--accent2);
+      padding: 4px 14px;
+      border-radius: 2px;
+      margin-bottom: 22px;
+      opacity: 0.85;
+    }
+
+    h1 {
+      font-family: 'Syne', sans-serif;
+      font-weight: 900;
+      font-size: clamp(2.8rem, 8vw, 5.5rem);
+      line-height: 0.95;
+      letter-spacing: -2px;
+      background: linear-gradient(135deg, var(--accent1) 0%, var(--accent2) 60%, var(--accent3) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 14px;
+      text-shadow: none;
+    }
+
+    .artist {
+      font-size: 13px;
+      color: var(--muted);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    /* COVER ART */
+    .cover-wrap {
+      position: relative;
+      width: 260px;
+      margin: 0 auto 50px;
+      animation: fadeUp 0.9s 0.15s ease both;
+    }
+
+    .cover {
+      width: 260px;
+      height: 260px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #1a0535 0%, #0d1a40 50%, #001a1a 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 80px;
+      border: 1px solid rgba(255,255,255,0.07);
+      box-shadow: 0 0 60px var(--glow1), 0 0 30px var(--glow2);
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+    }
+
+    .cover::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255,45,247,0.1), transparent 60%);
+      border-radius: 12px;
+    }
+
+    .cover-spin {
+      position: absolute;
+      inset: -4px;
+      border-radius: 14px;
+      background: conic-gradient(from 0deg, var(--accent1), var(--accent2), var(--accent3), var(--accent1));
+      opacity: 0;
+      animation: none;
+      z-index: -1;
+      transition: opacity 0.4s;
+    }
+    .playing .cover-spin { opacity: 1; animation: spinBorder 3s linear infinite; }
+    @keyframes spinBorder { to { transform: rotate(360deg); } }
+
+    /* LIKE BUTTON */
+    .like-btn {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      background: rgba(0,0,0,0.5);
+      border: none;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 18px;
+      transition: transform 0.2s, background 0.2s;
+      z-index: 2;
+      backdrop-filter: blur(8px);
+    }
+    .like-btn:hover { transform: scale(1.15); }
+    .like-btn.liked { animation: likePop 0.4s ease; }
+    @keyframes likePop {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.4); }
+      100% { transform: scale(1); }
+    }
+    .like-count {
+      text-align: center;
+      margin-top: 10px;
+      font-size: 12px;
+      color: var(--muted);
+      letter-spacing: 1px;
+    }
+    .like-count span { color: var(--accent1); font-weight: 700; }
+
+    /* PLAYER */
+    .player-card {
+      background: var(--card);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 16px;
+      padding: 28px 32px;
+      margin-bottom: 24px;
+      backdrop-filter: blur(20px);
+      animation: fadeUp 1s 0.25s ease both;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.4);
+    }
+
+    /* WAVEFORM BAR */
+    .waveform {
+      display: flex;
+      align-items: flex-end;
+      gap: 3px;
+      height: 36px;
+      margin-bottom: 16px;
+      justify-content: center;
+    }
+    .waveform-bar {
+      width: 3px;
+      border-radius: 2px;
+      background: var(--muted);
+      transition: background 0.3s;
+      animation: none;
+    }
+    .playing .waveform-bar {
+      background: var(--accent1);
+      animation: wave var(--dur, 0.8s) ease-in-out infinite alternate;
+    }
+    @keyframes wave { from { transform: scaleY(0.3); } to { transform: scaleY(1); } }
+
+    /* CUSTOM AUDIO PLAYER */
+    .audio-controls {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .play-btn {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent1), var(--accent2));
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+      transition: transform 0.2s, box-shadow 0.2s;
+      box-shadow: 0 0 20px var(--glow1);
+    }
+    .play-btn:hover { transform: scale(1.08); box-shadow: 0 0 30px var(--glow1); }
+
+    .progress-wrap { flex: 1; }
+
+    .time-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 4px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 2px;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--accent1), var(--accent2));
+      border-radius: 2px;
+      transition: width 0.1s linear;
+      position: relative;
+    }
+    .progress-fill::after {
+      content: '';
+      position: absolute;
+      right: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: white;
+      box-shadow: 0 0 6px var(--accent1);
+    }
+
+    .volume-btn {
+      background: none;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 16px;
+      padding: 4px;
+      transition: color 0.2s;
+    }
+    .volume-btn:hover { color: var(--accent2); }
+
+    /* HIDDEN REAL AUDIO */
+    audio { display: none; }
+
+    /* UPLOAD HINT */
+    .upload-hint {
+      text-align: center;
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 10px;
+      opacity: 0.7;
+    }
+
+    /* DOWNLOAD BTN */
+    .download-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      width: 100%;
+      padding: 14px;
+      background: transparent;
+      border: 1px solid var(--accent3);
+      color: var(--accent3);
+      border-radius: 10px;
+      font-family: 'Space Mono', monospace;
+      font-size: 13px;
+      letter-spacing: 1px;
+      text-decoration: none;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background 0.2s, box-shadow 0.2s, transform 0.2s;
+      margin-bottom: 24px;
+      animation: fadeUp 1s 0.35s ease both;
+    }
+    .download-btn:hover {
+      background: rgba(170,255,0,0.08);
+      box-shadow: 0 0 20px rgba(170,255,0,0.2);
+      transform: translateY(-2px);
+    }
+
+    /* LYRICS */
+    .lyrics-card {
+      background: var(--card);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 16px;
+      padding: 32px;
+      margin-bottom: 24px;
+      animation: fadeUp 1s 0.45s ease both;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.4);
+    }
+
+    .section-label {
+      font-family: 'Space Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--accent2);
+      margin-bottom: 20px;
+      opacity: 0.7;
+    }
+
+    .lyrics {
+      font-size: 14px;
+      line-height: 2;
+      color: rgba(240,230,255,0.75);
+      white-space: pre-line;
+    }
+
+    .lyrics .verse-tag {
+      display: block;
+      font-size: 10px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--accent1);
+      opacity: 0.6;
+      margin: 20px 0 8px;
+    }
+
+    /* SOCIAL */
+    .social-card {
+      background: var(--card);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 16px;
+      padding: 28px 32px;
+      animation: fadeUp 1s 0.55s ease both;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.4);
+    }
+
+    .social-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .social-link {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 18px;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.1);
+      color: var(--text);
+      text-decoration: none;
+      font-size: 12px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+      background: rgba(255,255,255,0.03);
+    }
+    .social-link:hover { border-color: var(--accent1); transform: translateY(-3px); box-shadow: 0 4px 16px var(--glow1); }
+    .social-copy { cursor: pointer; user-select: none; }
+    .copy-hint {
+      margin-top: 12px;
+      font-size: 11px;
+      color: var(--accent3);
+      letter-spacing: 1px;
+      min-height: 16px;
+      transition: opacity 0.3s;
+    }
+
+    /* BUBBLE POPOVER */
+    .bubble-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+    }
+    .bubble-overlay.open { display: block; }
+
+    .bubble {
+      position: fixed;
+      display: none;
+      background: #1a0d35;
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 14px;
+      padding: 18px 20px;
+      box-shadow: 0 12px 48px rgba(0,0,0,0.6), 0 0 30px var(--glow1);
+      z-index: 102;
+      min-width: 260px;
+      max-width: 320px;
+    }
+    .bubble.open {
+      display: block;
+      animation: popIn 0.2s cubic-bezier(0.34,1.56,0.64,1) both;
+    }
+    @keyframes popIn {
+      from { opacity: 0; transform: scale(0.85) translateY(8px); }
+      to   { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    .bubble-label {
+      font-size: 10px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 10px;
+    }
+    .bubble-value {
+      font-size: 13px;
+      color: var(--text);
+      word-break: break-all;
+      margin-bottom: 14px;
+      line-height: 1.5;
+    }
+    .bubble-actions { display: flex; gap: 8px; }
+    .bubble-btn {
+      flex: 1;
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.05);
+      color: var(--text);
+      font-family: 'Space Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      cursor: pointer;
+      text-decoration: none;
+      text-align: center;
+      transition: background 0.2s, border-color 0.2s;
+    }
+    .bubble-btn:hover { background: rgba(255,45,247,0.1); border-color: var(--accent1); }
+    .bubble-btn.copied { border-color: var(--accent3); color: var(--accent3); }
+
+    /* FOOTER */
+    footer {
+      text-align: center;
+      margin-top: 50px;
+      font-size: 11px;
+      color: var(--muted);
+      letter-spacing: 1px;
+      animation: fadeUp 1s 0.65s ease both;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+
+  </style>
+</head>
+<body>
+
+<div class="blob blob1"></div>
+<div class="blob blob2"></div>
+<div class="blob blob3"></div>
+
+<div class="container">
+
+  <!-- HEADER -->
+  <header>
+    <h1 id="song-title">Pulse.exe</h1>
+    <p class="artist" id="artist-name">Pixo</p>
+  </header>
+
+  <!-- COVER ART + LIKE -->
+  <div class="cover-wrap" id="cover-wrap">
+    <div class="cover-spin"></div>
+    <div class="cover" id="cover-art">
+      &#x1F3A7;
+      <button class="like-btn" id="like-btn" title="Like this track" style="font-size:16px; color: var(--muted);">&#9825;</button>
+    </div>
+    <p class="like-count"><span id="like-num">0</span> likes</p>
+  </div>
+
+  <!-- PLAYER CARD -->
+  <div class="player-card" id="player-card">
+
+    <!-- WAVEFORM -->
+    <div class="waveform" id="waveform"></div>
+
+    <!-- CONTROLS -->
+    <div class="audio-controls">
+      <button class="play-btn" id="play-btn">▶</button>
+      <div class="progress-wrap">
+        <div class="time-row">
+          <span id="current-time">0:00</span>
+          <span id="duration">0:00</span>
+        </div>
+        <div class="progress-bar" id="progress-bar">
+          <div class="progress-fill" id="progress-fill"></div>
+        </div>
+      </div>
+      <button class="volume-btn" id="vol-btn" title="Toggle mute">&#x266A;</button>
+    </div>
+
+    <audio id="audio-player" src="song.mp3" preload="metadata"></audio>
+  </div>
+
+  <!-- DOWNLOAD -->
+  <a class="download-btn" id="download-btn" href="song.mp3" download>
+    ↓ Download Track
+  </a>
+
+  <!-- LYRICS -->
+  <div class="lyrics-card">
+    <p class="section-label">// Lyrics</p>
+    <div class="lyrics" id="lyrics-display">
+      <span style="color:var(--muted); font-size:13px; letter-spacing:1px;">— no lyrics for this one. just feel it.</span>
+    </div>
+  </div>
+
+
+
+  <footer>
+    <p>© 2026 Pixo — All rights reserved</p>
+  </footer>
+
+</div>
+
+
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+  // ── WAVEFORM BARS SETUP ──────────────────────────────────────────
+  const waveform = document.getElementById('waveform');
+  const barCount = 40;
+  for (let i = 0; i < barCount; i++) {
+    const bar = document.createElement('div');
+    bar.className = 'waveform-bar';
+    const h = 10 + Math.random() * 90;
+    bar.style.height = h + '%';
+    bar.style.setProperty('--dur', (0.5 + Math.random() * 0.7).toFixed(2) + 's');
+    bar.style.animationDelay = (Math.random() * 0.5).toFixed(2) + 's';
+    waveform.appendChild(bar);
+  }
+
+  // ── AUDIO PLAYER ────────────────────────────────────────────────
+  const audio       = document.getElementById('audio-player');
+  const playBtn     = document.getElementById('play-btn');
+  const progressBar = document.getElementById('progress-bar');
+  const fill        = document.getElementById('progress-fill');
+  const currentTime = document.getElementById('current-time');
+  const durationEl  = document.getElementById('duration');
+  const playerCard  = document.getElementById('player-card');
+  const coverWrap   = document.getElementById('cover-wrap');
+  const volBtn      = document.getElementById('vol-btn');
+
+  let isPlaying = false;
+
+  function fmt(s) {
+    const m = Math.floor(s / 60);
+    const sec = Math.floor(s % 60);
+    return m + ':' + String(sec).padStart(2, '0');
+  }
+
+  audio.addEventListener('loadedmetadata', () => {
+    durationEl.textContent = fmt(audio.duration);
+  });
+
+  audio.addEventListener('timeupdate', () => {
+    if (!audio.duration) return;
+    const pct = (audio.currentTime / audio.duration) * 100;
+    fill.style.width = pct + '%';
+    currentTime.textContent = fmt(audio.currentTime);
+  });
+
+  audio.addEventListener('ended', () => { setPlaying(false); });
+
+  playBtn.addEventListener('click', () => {
+    if (isPlaying) { audio.pause(); setPlaying(false); }
+    else { audio.play(); setPlaying(true); }
+  });
+
+  progressBar.addEventListener('click', (e) => {
+    if (!audio.duration) return;
+    const rect = progressBar.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    audio.currentTime = (x / rect.width) * audio.duration;
+  });
+
+  volBtn.addEventListener('click', () => {
+    audio.muted = !audio.muted;
+    volBtn.textContent = audio.muted ? '×' : '♪';
+  });
+
+  function setPlaying(state) {
+    isPlaying = state;
+    playBtn.textContent = state ? '⏸' : '▶';
+    if (state) {
+      playerCard.classList.add('playing');
+      coverWrap.classList.add('playing');
+    } else {
+      playerCard.classList.remove('playing');
+      coverWrap.classList.remove('playing');
+    }
+  }
+
+  // ── LIKE BUTTON ─────────────────────────────────────────────────
+  const likeBtn  = document.getElementById('like-btn');
+  const likeNum  = document.getElementById('like-num');
+  let liked = false;
+  let likes = 0;
+
+  likeBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    liked = !liked;
+    likes += liked ? 1 : -1;
+    likeBtn.innerHTML = liked ? '<span style="color:var(--accent1)">&#9829;</span>' : '<span style="color:var(--muted)">&#9825;</span>';
+    likeNum.textContent = likes;
+    likeBtn.classList.toggle('liked', liked);
+  });
+
+  // ── FIND ME PANEL ───────────────────────────────────────────────
+  let currentCopyValue = '';
+
+  document.querySelectorAll('.social-link').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      const label = btn.dataset.label;
+      const value = btn.dataset.value;
+      const url   = btn.dataset.url || null;
+
+      currentCopyValue = value;
+      document.getElementById('info-label').textContent = label;
+      document.getElementById('info-value').textContent = value;
+
+      const copyBtn = document.getElementById('copy-btn');
+      copyBtn.textContent = 'Copy';
+      copyBtn.style.color = '#aaff00';
+      copyBtn.style.borderColor = '#aaff00';
+
+      const openBtn = document.getElementById('open-btn');
+      if (url) {
+        openBtn.href = url;
+        openBtn.style.display = 'inline-block';
+      } else {
+        openBtn.style.display = 'none';
+      }
+
+      document.getElementById('info-panel').style.display = 'block';
+      document.querySelectorAll('.social-link').forEach(function(b) { b.style.borderColor = ''; });
+      btn.style.borderColor = '#ff2df7';
+    });
+  });
+
+  document.getElementById('copy-btn').addEventListener('click', function() {
+    navigator.clipboard.writeText(currentCopyValue).then(function() {
+      const btn = document.getElementById('copy-btn');
+      btn.textContent = 'Copied!';
+      btn.style.color = '#ffffff';
+      btn.style.borderColor = '#ffffff';
+      setTimeout(function() {
+        btn.textContent = 'Copy';
+        btn.style.color = '#aaff00';
+        btn.style.borderColor = '#aaff00';
+      }, 2000);
+    });
+  });
