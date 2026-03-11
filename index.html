@@ -306,7 +306,7 @@
       🎧
       <button class="like-btn" id="like-btn">&#9825;</button>
     </div>
-    <p class="like-count"><span id="like-num">0</span> likes</p>
+    <p class="like-count"><span id="like-num">2</span> likes</p>
   </div>
 
   <div class="player-card" id="player-card">
@@ -324,12 +324,12 @@
       </div>
       <button class="volume-btn" id="vol-btn">&#9834;</button>
     </div>
-    <audio id="audio-player" src="https://res.cloudinary.com/dhjtu3rpo/video/upload/v1773191827/song_tm2uva.mp3"></audio>
+    <audio id="audio-player" src="https://res.cloudinary.com/dhjtu3rpo/video/upload/v1773193614/song_nodl2b.mp3"></audio>
   </div>
 
-  <a class="download-btn" href="https://res.cloudinary.com/dhjtu3rpo/video/upload/v1773191827/song_tm2uva.mp3" download>
+  <button class="download-btn" id="download-btn">
     &#8595; Download Track
-  </a>
+  </button>
 
   <div class="lyrics-card">
     <p class="section-label">// Lyrics</p>
@@ -414,11 +414,26 @@
     }
   }
 
-  // LIKE
+  // DOWNLOAD
+  document.getElementById('download-btn').addEventListener('click', function() {
+    var btn = document.getElementById('download-btn');
+    btn.textContent = 'Downloading...';
+    fetch('https://res.cloudinary.com/dhjtu3rpo/video/upload/v1773193614/song_nodl2b.mp3')
+      .then(function(r) { return r.blob(); })
+      .then(function(blob) {
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = 'Pulse.exe - Pixo.mp3';
+        a.click();
+        URL.revokeObjectURL(url);
+        btn.innerHTML = '&#8595; Download Track';
+      });
+  });
   var likeBtn = document.getElementById('like-btn');
   var likeNum = document.getElementById('like-num');
   var liked = false;
-  var likes = 0;
+  var likes = 2;
 
   likeBtn.addEventListener('click', function(e) {
     e.stopPropagation();
