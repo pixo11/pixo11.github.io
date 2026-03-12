@@ -1,448 +1,297 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Pulse.exe</title>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;700;800;900&display=swap" rel="stylesheet"/>
-  <style>
-    :root {
-      --bg: #06000f;
-      --card: #13092e;
-      --accent1: #ff2df7;
-      --accent2: #00f0ff;
-      --accent3: #aaff00;
-      --text: #f0e6ff;
-      --muted: #7a6a99;
-      --glow1: rgba(255,45,247,0.35);
-      --glow2: rgba(0,240,255,0.25);
-    }
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'Space Mono', monospace;
-      min-height: 100vh;
-      overflow-x: hidden;
-    }
-    .blob {
-      position: fixed;
-      border-radius: 50%;
-      filter: blur(80px);
-      pointer-events: none;
-      z-index: 0;
-    }
-    .blob1 { width:500px; height:500px; background:var(--glow1); top:-150px; left:-100px; animation:drift1 12s ease-in-out infinite alternate; }
-    .blob2 { width:400px; height:400px; background:var(--glow2); bottom:-100px; right:-80px; animation:drift2 15s ease-in-out infinite alternate; }
-    .blob3 { width:300px; height:300px; background:rgba(170,255,0,0.12); top:40%; left:40%; animation:drift1 18s ease-in-out infinite alternate-reverse; }
-    @keyframes drift1 { from{transform:translate(0,0) scale(1)} to{transform:translate(40px,30px) scale(1.1)} }
-    @keyframes drift2 { from{transform:translate(0,0) scale(1)} to{transform:translate(-30px,-40px) scale(1.15)} }
-    @keyframes fadeUp { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:translateY(0)} }
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Pulse.exe — Pixo</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Martian+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg:     #0e0b07;
+  --s1:     #1a1208;
+  --s2:     #211808;
+  --amber:  #e8a030;
+  --rust:   #c4491a;
+  --cream:  #f0ddb0;
+  --dim:    #7a6340;
+  --border: rgba(232,160,48,0.12);
+  --glow-a: rgba(232,160,48,0.18);
+  --glow-r: rgba(196,73,26,0.14);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{
+  background:var(--bg);
+  color:var(--cream);
+  font-family:'Martian Mono',monospace;
+  min-height:100vh;
+  display:grid;place-items:center;
+  padding:40px 20px 80px;
+  overflow-x:hidden;
+}
+body::before{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)' opacity='0.055'/%3E%3C/svg%3E");
+}
+body::after{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:radial-gradient(ellipse 80% 80% at 50% 50%, transparent 40%, rgba(0,0,0,0.65) 100%);
+}
+.blobs{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+.blobs span{position:absolute;border-radius:50%;filter:blur(110px);animation:waft var(--d,16s) ease-in-out infinite alternate}
+.blobs span:nth-child(1){width:600px;height:500px;background:var(--glow-a);top:-180px;left:-120px;--d:15s}
+.blobs span:nth-child(2){width:400px;height:400px;background:var(--glow-r);bottom:-80px;right:-80px;--d:19s}
+.blobs span:nth-child(3){width:280px;height:280px;background:rgba(232,160,48,0.08);top:45%;left:55%;--d:23s;animation-direction:alternate-reverse}
+@keyframes waft{0%{transform:translate(0,0)}100%{transform:translate(28px,20px)}}
 
-    .container {
-      position: relative;
-      z-index: 1;
-      max-width: 780px;
-      margin: 0 auto;
-      padding: 60px 24px 80px;
-    }
-    header {
-      text-align: center;
-      margin-bottom: 60px;
-      animation: fadeUp 0.8s ease both;
-    }
-    h1 {
-      font-family: 'Syne', sans-serif;
-      font-weight: 900;
-      font-size: clamp(2.8rem, 8vw, 5.5rem);
-      line-height: 0.95;
-      letter-spacing: -2px;
-      background: linear-gradient(135deg, var(--accent1) 0%, var(--accent2) 60%, var(--accent3) 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      margin-bottom: 14px;
-    }
-    .artist {
-      font-size: 13px;
-      color: var(--muted);
-      letter-spacing: 2px;
-      text-transform: uppercase;
-    }
+.card{
+  position:relative;z-index:1;
+  width:100%;max-width:440px;
+  background:linear-gradient(160deg, var(--s2) 0%, var(--s1) 100%);
+  border:1px solid var(--border);
+  border-radius:4px;
+  box-shadow:0 0 0 1px rgba(232,160,48,0.05),0 60px 120px rgba(0,0,0,0.7),0 0 60px var(--glow-a),inset 0 1px 0 rgba(232,160,48,0.08);
+  animation:appear 1s cubic-bezier(0.16,1,0.3,1) both;
+  overflow:hidden;
+}
+@keyframes appear{from{opacity:0;transform:translateY(32px)}to{opacity:1;transform:none}}
 
-    .cover-wrap {
-      position: relative;
-      width: 260px;
-      margin: 0 auto 50px;
-      animation: fadeUp 0.9s 0.15s ease both;
-    }
-    .cover-spin {
-      position: absolute;
-      inset: -4px;
-      border-radius: 14px;
-      background: conic-gradient(from 0deg, var(--accent1), var(--accent2), var(--accent3), var(--accent1));
-      opacity: 0;
-      z-index: -1;
-      transition: opacity 0.4s;
-    }
-    .playing .cover-spin { opacity: 1; animation: spinBorder 3s linear infinite; }
-    @keyframes spinBorder { to{transform:rotate(360deg)} }
-    .cover {
-      width: 260px;
-      height: 260px;
-      border-radius: 12px;
-      background: linear-gradient(135deg, #1a0535 0%, #0d1a40 50%, #001a1a 100%);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 80px;
-      border: 1px solid rgba(255,255,255,0.07);
-      box-shadow: 0 0 60px var(--glow1), 0 0 30px var(--glow2);
-      position: relative;
-      overflow: hidden;
-    }
-    .cover::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(135deg, rgba(255,45,247,0.1), transparent 60%);
-    }
-    .like-btn {
-      position: absolute;
-      top: 12px; right: 12px;
-      background: rgba(0,0,0,0.5);
-      border: none;
-      border-radius: 50%;
-      width: 40px; height: 40px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      font-size: 18px;
-      transition: transform 0.2s;
-      z-index: 2;
-      backdrop-filter: blur(8px);
-      color: var(--muted);
-    }
-    .like-btn:hover { transform: scale(1.15); }
-    .like-btn.liked { animation: likePop 0.4s ease; }
-    @keyframes likePop { 0%{transform:scale(1)} 50%{transform:scale(1.4)} 100%{transform:scale(1)} }
-    .like-count {
-      text-align: center;
-      margin-top: 10px;
-      font-size: 12px;
-      color: var(--muted);
-      letter-spacing: 1px;
-    }
-    .like-count span { color: var(--accent1); font-weight: 700; }
+.tape-line{height:3px;background:linear-gradient(90deg,transparent 0%,var(--rust) 20%,var(--amber) 50%,var(--rust) 80%,transparent 100%);opacity:0.6}
 
-    .player-card {
-      background: var(--card);
-      border: 1px solid rgba(255,255,255,0.06);
-      border-radius: 16px;
-      padding: 28px 32px;
-      margin-bottom: 24px;
-      animation: fadeUp 1s 0.25s ease both;
-      box-shadow: 0 8px 40px rgba(0,0,0,0.4);
-    }
-    .waveform {
-      display: flex;
-      align-items: flex-end;
-      gap: 3px;
-      height: 36px;
-      margin-bottom: 16px;
-      justify-content: center;
-    }
-    .waveform-bar {
-      width: 3px;
-      border-radius: 2px;
-      background: var(--muted);
-    }
-    .playing .waveform-bar {
-      background: var(--accent1);
-      animation: wave var(--dur, 0.8s) ease-in-out infinite alternate;
-    }
-    @keyframes wave { from{transform:scaleY(0.3)} to{transform:scaleY(1)} }
-    .audio-controls {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-    }
-    .play-btn {
-      width: 52px; height: 52px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, var(--accent1), var(--accent2));
-      border: none;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 20px;
-      color: white;
-      flex-shrink: 0;
-      transition: transform 0.2s, box-shadow 0.2s;
-      box-shadow: 0 0 20px var(--glow1);
-    }
-    .play-btn:hover { transform: scale(1.08); }
-    .progress-wrap { flex: 1; }
-    .time-row {
-      display: flex;
-      justify-content: space-between;
-      font-size: 11px;
-      color: var(--muted);
-      margin-bottom: 6px;
-    }
-    .progress-bar {
-      width: 100%;
-      height: 4px;
-      background: rgba(255,255,255,0.1);
-      border-radius: 2px;
-      cursor: pointer;
-      position: relative;
-    }
-    .progress-fill {
-      height: 100%;
-      width: 0%;
-      background: linear-gradient(90deg, var(--accent1), var(--accent2));
-      border-radius: 2px;
-      position: relative;
-      transition: width 0.1s linear;
-    }
-    .progress-fill::after {
-      content: '';
-      position: absolute;
-      right: 0; top: 50%;
-      transform: translateY(-50%);
-      width: 10px; height: 10px;
-      border-radius: 50%;
-      background: white;
-      box-shadow: 0 0 6px var(--accent1);
-    }
-    .volume-btn {
-      background: none;
-      border: none;
-      color: var(--muted);
-      cursor: pointer;
-      font-size: 18px;
-      padding: 4px;
-      transition: color 0.2s;
-    }
-    .volume-btn:hover { color: var(--accent2); }
-    audio { display: none; }
+.header{padding:24px 28px 20px;display:flex;align-items:flex-start;justify-content:space-between;border-bottom:1px solid var(--border)}
+.reel-label{font-size:8px;letter-spacing:5px;text-transform:uppercase;color:var(--dim);margin-bottom:6px}
+.track-name{font-family:'Instrument Serif',serif;font-style:italic;font-size:clamp(1.8rem,6vw,2.4rem);line-height:1;color:var(--amber);text-shadow:0 0 40px rgba(232,160,48,0.4);letter-spacing:-0.5px}
+.artist-name{font-size:9px;letter-spacing:4px;text-transform:uppercase;color:var(--dim);margin-top:8px}
+.like-block{display:flex;flex-direction:column;align-items:center;gap:5px;padding-top:4px}
+.like-btn{background:none;border:1px solid rgba(232,160,48,0.2);border-radius:3px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--dim);cursor:pointer;transition:border-color .25s,color .25s,transform .2s}
+.like-btn:hover{border-color:var(--amber);color:var(--amber);transform:scale(1.1)}
+.like-btn.liked{color:var(--rust);border-color:var(--rust);animation:stamp .4s ease}
+@keyframes stamp{0%{transform:scale(1)}45%{transform:scale(1.35)}100%{transform:scale(1)}}
+.like-count{font-size:9px;color:var(--dim);letter-spacing:1px}
 
-    .download-btn {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 100%;
-      padding: 14px;
-      background: transparent;
-      border: 1px solid var(--accent3);
-      color: var(--accent3);
-      border-radius: 10px;
-      font-family: 'Space Mono', monospace;
-      font-size: 13px;
-      letter-spacing: 1px;
-      text-decoration: none;
-      text-transform: uppercase;
-      transition: background 0.2s, box-shadow 0.2s, transform 0.2s;
-      margin-bottom: 24px;
-      animation: fadeUp 1s 0.35s ease both;
-    }
-    .download-btn:hover {
-      background: rgba(170,255,0,0.08);
-      box-shadow: 0 0 20px rgba(170,255,0,0.2);
-      transform: translateY(-2px);
-    }
+.cover-wrap{position:relative;padding:24px 28px;display:flex;justify-content:center;border-bottom:1px solid var(--border)}
+.cover{width:200px;height:200px;border-radius:3px;background:var(--bg);border:1px solid rgba(232,160,48,0.15);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;box-shadow:0 0 40px rgba(0,0,0,0.6),0 0 20px var(--glow-a)}
+.cover-lines{position:absolute;inset:0;background-image:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(232,160,48,0.025) 3px,rgba(232,160,48,0.025) 4px)}
+.cover-glow{position:absolute;inset:0;background:radial-gradient(ellipse 70% 70% at 50% 50%,rgba(232,160,48,0.12),transparent 70%)}
+.scrub-ring{position:absolute;inset:-6px;border-radius:50%;border:1.5px dashed rgba(232,160,48,0.0);transition:border-color .4s}
+.playing .scrub-ring{border-color:rgba(232,160,48,0.25);animation:spinDash 8s linear infinite}
+@keyframes spinDash{to{transform:rotate(360deg)}}
+.cover-icon{position:relative;z-index:1;font-size:60px;filter:sepia(0.4) brightness(0.9);transition:transform .4s ease;user-select:none}
+.playing .cover-icon{animation:reelSpin 3s ease-in-out infinite alternate}
+@keyframes reelSpin{0%{transform:scale(1) rotate(-2deg)}100%{transform:scale(1.06) rotate(2deg)}}
 
-    .lyrics-card {
-      background: var(--card);
-      border: 1px solid rgba(255,255,255,0.06);
-      border-radius: 16px;
-      padding: 32px;
-      margin-bottom: 24px;
-      animation: fadeUp 1s 0.45s ease both;
-      box-shadow: 0 8px 40px rgba(0,0,0,0.4);
-    }
-    .section-label {
-      font-size: 10px;
-      letter-spacing: 4px;
-      text-transform: uppercase;
-      color: var(--accent2);
-      margin-bottom: 20px;
-      opacity: 0.7;
-    }
-    .lyrics {
-      font-size: 14px;
-      line-height: 2;
-      color: rgba(240,230,255,0.75);
-    }
-    footer {
-      text-align: center;
-      margin-top: 50px;
-      font-size: 11px;
-      color: var(--muted);
-      letter-spacing: 1px;
-      animation: fadeUp 1s 0.65s ease both;
-    }
-  </style>
+.vu-wrap{padding:16px 28px 0;display:flex;align-items:flex-end;gap:2px;height:40px}
+.vu-bar{flex:1;border-radius:1px 1px 0 0;background:rgba(232,160,48,0.1);transform-origin:bottom}
+.playing .vu-bar{animation:vuAnim var(--d) ease-in-out infinite alternate}
+@keyframes vuAnim{
+  0%{background:rgba(232,160,48,0.15);transform:scaleY(0.1)}
+  40%{background:rgba(232,160,48,0.7);transform:scaleY(var(--h1,0.5))}
+  70%{background:var(--amber);transform:scaleY(var(--h2,0.8))}
+  85%{background:var(--rust);transform:scaleY(var(--h3,0.95))}
+  100%{background:var(--amber);transform:scaleY(var(--h4,0.6))}
+}
+
+.progress-area{padding:12px 28px 0}
+.tape-progress{position:relative;height:2px;background:rgba(232,160,48,0.1);cursor:pointer;margin-bottom:8px}
+.tape-progress-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--rust),var(--amber));position:relative;transition:width .1s linear}
+.tape-progress-fill::after{content:'';position:absolute;right:-5px;top:50%;transform:translateY(-50%);width:10px;height:10px;border-radius:50%;background:var(--amber);box-shadow:0 0 8px var(--amber);opacity:0;transition:opacity .2s}
+.tape-progress:hover .tape-progress-fill::after{opacity:1}
+.time-row{display:flex;justify-content:space-between;font-size:9px;color:var(--dim);letter-spacing:2px}
+
+.controls{padding:20px 28px;display:flex;align-items:center;justify-content:center;gap:16px}
+.ctrl{background:none;border:none;color:var(--dim);font-size:14px;cursor:pointer;padding:8px;border-radius:3px;transition:color .2s,background .2s;font-family:'Martian Mono',monospace;line-height:1}
+.ctrl:hover{color:var(--cream);background:rgba(232,160,48,0.06)}
+.ctrl.on{color:var(--amber)}
+.play{width:56px;height:56px;border-radius:3px;background:var(--amber);border:none;display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--bg);cursor:pointer;box-shadow:0 0 30px rgba(232,160,48,0.35),0 4px 16px rgba(0,0,0,0.4);transition:transform .2s,box-shadow .2s}
+.play:hover{transform:scale(1.06);box-shadow:0 0 50px rgba(232,160,48,0.5)}
+.play:active{transform:scale(0.95)}
+
+.vol-row{padding:0 28px 22px;display:flex;align-items:center;gap:10px}
+.vol-lbl{font-size:8px;letter-spacing:3px;text-transform:uppercase;color:var(--dim);width:28px}
+input[type=range].vol{flex:1;-webkit-appearance:none;appearance:none;height:2px;background:rgba(232,160,48,0.12);border-radius:1px;outline:none;cursor:pointer}
+input[type=range].vol::-webkit-slider-thumb{-webkit-appearance:none;width:11px;height:11px;border-radius:2px;background:var(--amber);cursor:pointer;box-shadow:0 0 6px rgba(232,160,48,0.5)}
+
+.cta{padding:0 28px 20px;display:grid;grid-template-columns:1fr auto;gap:8px;border-bottom:1px solid var(--border)}
+.dl{display:flex;align-items:center;gap:8px;padding:11px 16px;background:transparent;border:1px solid rgba(196,73,26,0.3);color:var(--rust);border-radius:3px;font-family:'Martian Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;transition:background .2s,border-color .2s,transform .15s}
+.dl:hover{background:rgba(196,73,26,0.08);border-color:var(--rust);transform:translateY(-1px)}
+.dl:active{transform:none}
+.share{padding:11px 14px;background:transparent;border:1px solid var(--border);color:var(--dim);border-radius:3px;font-size:13px;cursor:pointer;transition:color .2s,border-color .2s}
+.share:hover{color:var(--cream);border-color:rgba(232,160,48,0.25)}
+
+.tape-scroll{overflow:hidden;white-space:nowrap;border-bottom:1px solid var(--border);padding:12px 0;background:rgba(0,0,0,0.2)}
+.tape-inner{display:inline-block;font-size:8px;letter-spacing:4px;text-transform:uppercase;color:var(--dim);animation:scroll 28s linear infinite}
+.tape-inner .sep{color:var(--rust);margin:0 14px}
+@keyframes scroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+
+.stats{display:grid;grid-template-columns:repeat(3,1fr)}
+.stat{padding:16px 0;text-align:center;position:relative}
+.stat+.stat::before{content:'';position:absolute;left:0;top:25%;height:50%;width:1px;background:var(--border)}
+.stat-n{font-family:'Instrument Serif',serif;font-style:italic;font-size:22px;color:var(--amber);display:block;margin-bottom:2px;text-shadow:0 0 20px rgba(232,160,48,0.3)}
+.stat-l{font-size:8px;letter-spacing:3px;text-transform:uppercase;color:var(--dim)}
+
+.footer{padding:14px 28px;display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--border)}
+.foot-l{font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--dim)}
+.reel-dot{width:8px;height:8px;border-radius:50%;border:1.5px solid var(--amber);position:relative}
+.reel-dot::after{content:'';position:absolute;inset:2px;border-radius:50%;background:var(--amber);animation:reelPulse 2s ease-in-out infinite}
+@keyframes reelPulse{0%,100%{opacity:0.2}50%{opacity:1}}
+
+audio{display:none}
+</style>
 </head>
 <body>
 
-<div class="blob blob1"></div>
-<div class="blob blob2"></div>
-<div class="blob blob3"></div>
+<div class="blobs"><span></span><span></span><span></span></div>
 
-<div class="container">
+<div class="card" id="card">
+  <div class="tape-line"></div>
 
-  <header>
-    <h1>Pulse.exe</h1>
-    <p class="artist">Pixo</p>
-  </header>
-
-  <div class="cover-wrap" id="cover-wrap">
-    <div class="cover-spin"></div>
-    <div class="cover">
-      🎧
-      <button class="like-btn" id="like-btn">&#9825;</button>
+  <div class="header">
+    <div>
+      <div class="reel-label">Now playing</div>
+      <div class="track-name">Pulse.exe</div>
+      <div class="artist-name">Pixo</div>
     </div>
-    <p class="like-count"><span id="like-num">2</span> likes</p>
-  </div>
-
-  <div class="player-card" id="player-card">
-    <div class="waveform" id="waveform"></div>
-    <div class="audio-controls">
-      <button class="play-btn" id="play-btn">&#9654;</button>
-      <div class="progress-wrap">
-        <div class="time-row">
-          <span id="current-time">0:00</span>
-          <span id="duration">0:00</span>
-        </div>
-        <div class="progress-bar" id="progress-bar">
-          <div class="progress-fill" id="progress-fill"></div>
-        </div>
-      </div>
-      <button class="volume-btn" id="vol-btn">&#9834;</button>
-    </div>
-    <audio id="audio-player" src="https://res.cloudinary.com/dhjtu3rpo/video/upload/v1773193614/song_nodl2b.mp3"></audio>
-  </div>
-
-  <button class="download-btn" id="download-btn">
-    &#8595; Download Track
-  </button>
-
-  <div class="lyrics-card">
-    <p class="section-label">// Lyrics</p>
-    <div class="lyrics">
-      <span style="color:var(--muted); font-size:13px; letter-spacing:1px;">— no lyrics for this one. just feel it.</span>
+    <div class="like-block">
+      <button class="like-btn" id="like-btn">♡</button>
+      <span class="like-count" id="like-count">2</span>
     </div>
   </div>
 
-  <footer>
-    <p>&#169; 2026 Pixo &#8212; All rights reserved</p>
-  </footer>
+  <div class="cover-wrap">
+    <div class="cover" id="cover">
+      <div class="cover-lines"></div>
+      <div class="cover-glow"></div>
+      <div class="scrub-ring"></div>
+      <div class="cover-icon">🎧</div>
+    </div>
+  </div>
 
+  <div class="vu-wrap" id="vu"></div>
+
+  <div class="progress-area">
+    <div class="tape-progress" id="tp">
+      <div class="tape-progress-fill" id="tpf"></div>
+    </div>
+    <div class="time-row">
+      <span id="cur">0:00</span>
+      <span id="dur">0:00</span>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button class="ctrl" id="shuf">⇄</button>
+    <button class="ctrl">⏮</button>
+    <button class="play" id="play">▶</button>
+    <button class="ctrl">⏭</button>
+    <button class="ctrl" id="loop">↺</button>
+  </div>
+
+  <div class="vol-row">
+    <span class="vol-lbl" id="vlbl">VOL</span>
+    <input type="range" class="vol" min="0" max="1" step="0.02" value="1" id="vol"/>
+  </div>
+
+  <div class="cta">
+    <button class="dl" id="dl">↓ Download Track</button>
+    <button class="share" id="share">⬆</button>
+  </div>
+
+  <div class="tape-scroll">
+    <span class="tape-inner">
+      Pixo<span class="sep">✦</span>Pulse.exe<span class="sep">✦</span>2026<span class="sep">✦</span>Electronic<span class="sep">✦</span>All rights reserved<span class="sep">✦</span>pixo.music<span class="sep">✦</span>Pixo<span class="sep">✦</span>Pulse.exe<span class="sep">✦</span>2026<span class="sep">✦</span>Electronic<span class="sep">✦</span>All rights reserved<span class="sep">✦</span>pixo.music<span class="sep">✦</span>
+    </span>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><span class="stat-n" id="plays">8</span><span class="stat-l">Plays</span></div>
+    <div class="stat"><span class="stat-n" id="likes-stat">2</span><span class="stat-l">Likes</span></div>
+    <div class="stat"><span class="stat-n">1</span><span class="stat-l">Tracks</span></div>
+  </div>
+
+  <div class="footer">
+    <span class="foot-l">© 2026 Pixo</span>
+    <div class="reel-dot"></div>
+  </div>
 </div>
 
+<audio id="audio" src="https://res.cloudinary.com/dhjtu3rpo/video/upload/v1773193614/song_nodl2b.mp3" preload="metadata"></audio>
+
 <script>
-  // WAVEFORM
-  var waveform = document.getElementById('waveform');
-  for (var i = 0; i < 40; i++) {
-    var bar = document.createElement('div');
-    bar.className = 'waveform-bar';
-    bar.style.height = (10 + Math.random() * 90) + '%';
-    bar.style.setProperty('--dur', (0.5 + Math.random() * 0.7).toFixed(2) + 's');
-    bar.style.animationDelay = (Math.random() * 0.5).toFixed(2) + 's';
-    waveform.appendChild(bar);
-  }
+var audio=document.getElementById('audio'),
+    playBtn=document.getElementById('play'),
+    tpf=document.getElementById('tpf'),
+    tp=document.getElementById('tp'),
+    cur=document.getElementById('cur'),
+    durEl=document.getElementById('dur'),
+    card=document.getElementById('card'),
+    vol=document.getElementById('vol'),
+    vlbl=document.getElementById('vlbl'),
+    likeBtn=document.getElementById('like-btn'),
+    likeCount=document.getElementById('like-count'),
+    likesStat=document.getElementById('likes-stat'),
+    playsEl=document.getElementById('plays'),
+    loopBtn=document.getElementById('loop'),
+    shufBtn=document.getElementById('shuf'),
+    playing=false,liked=false,likes=2,looping=false,plays=8;
 
-  // PLAYER
-  var audio       = document.getElementById('audio-player');
-  var playBtn     = document.getElementById('play-btn');
-  var progressBar = document.getElementById('progress-bar');
-  var fill        = document.getElementById('progress-fill');
-  var curTime     = document.getElementById('current-time');
-  var durEl       = document.getElementById('duration');
-  var playerCard  = document.getElementById('player-card');
-  var coverWrap   = document.getElementById('cover-wrap');
-  var volBtn      = document.getElementById('vol-btn');
-  var isPlaying   = false;
+var vu=document.getElementById('vu');
+for(var i=0;i<52;i++){
+  var b=document.createElement('div');b.className='vu-bar';
+  var h1=(0.08+Math.random()*0.92).toFixed(2),h2=(0.08+Math.random()*0.92).toFixed(2),
+      h3=(0.08+Math.random()*0.92).toFixed(2),h4=(0.08+Math.random()*0.92).toFixed(2);
+  b.style.cssText='height:100%;--d:'+(0.3+Math.random()*0.6).toFixed(2)+'s;--h1:'+h1+';--h2:'+h2+';--h3:'+h3+';--h4:'+h4+';animation-delay:'+(Math.random()*0.4).toFixed(2)+'s;transform:scaleY('+h1+')';
+  vu.appendChild(b);
+}
 
-  function fmt(s) {
-    var m = Math.floor(s / 60);
-    var sec = Math.floor(s % 60);
-    return m + ':' + (sec < 10 ? '0' : '') + sec;
-  }
+function fmt(s){var m=Math.floor(s/60),ss=Math.floor(s%60);return m+':'+(ss<10?'0':'')+ss}
+audio.addEventListener('loadedmetadata',function(){durEl.textContent=fmt(audio.duration)});
+audio.addEventListener('timeupdate',function(){
+  if(!audio.duration)return;
+  tpf.style.width=(audio.currentTime/audio.duration*100)+'%';
+  cur.textContent=fmt(audio.currentTime);
+});
+audio.addEventListener('ended',function(){if(looping){audio.currentTime=0;audio.play()}else{playing=false;playBtn.innerHTML='▶';card.classList.remove('playing')}});
 
-  audio.addEventListener('loadedmetadata', function() {
-    durEl.textContent = fmt(audio.duration);
-  });
+playBtn.addEventListener('click',function(){
+  if(playing){audio.pause();playing=false;playBtn.innerHTML='▶';card.classList.remove('playing')}
+  else{audio.play();playing=true;playBtn.innerHTML='⏸';card.classList.add('playing');plays++;playsEl.textContent=plays}
+});
 
-  audio.addEventListener('timeupdate', function() {
-    if (!audio.duration) return;
-    fill.style.width = (audio.currentTime / audio.duration * 100) + '%';
-    curTime.textContent = fmt(audio.currentTime);
-  });
+tp.addEventListener('click',function(e){
+  if(!audio.duration)return;
+  var r=tp.getBoundingClientRect();
+  audio.currentTime=((e.clientX-r.left)/r.width)*audio.duration;
+});
 
-  audio.addEventListener('ended', function() { setPlaying(false); });
+vol.addEventListener('input',function(){
+  audio.volume=this.value;
+  vlbl.textContent=this.value==0?'MUT':this.value<0.4?'LOW':'VOL';
+});
 
-  playBtn.addEventListener('click', function() {
-    if (isPlaying) { audio.pause(); setPlaying(false); }
-    else { audio.play(); setPlaying(true); }
-  });
+likeBtn.addEventListener('click',function(){
+  liked=!liked;likes+=liked?1:-1;
+  likeBtn.innerHTML=liked?'<span style="color:var(--rust)">♥</span>':'♡';
+  likeBtn.classList.toggle('liked',liked);
+  likeCount.textContent=likes;likesStat.textContent=likes;
+});
 
-  progressBar.addEventListener('click', function(e) {
-    if (!audio.duration) return;
-    var rect = progressBar.getBoundingClientRect();
-    audio.currentTime = ((e.clientX - rect.left) / rect.width) * audio.duration;
-  });
+loopBtn.addEventListener('click',function(){looping=!looping;loopBtn.classList.toggle('on',looping);audio.loop=looping});
+shufBtn.addEventListener('click',function(){shufBtn.classList.toggle('on')});
 
-  volBtn.addEventListener('click', function() {
-    audio.muted = !audio.muted;
-    volBtn.innerHTML = audio.muted ? '&#10006;' : '&#9834;';
-  });
+document.getElementById('dl').addEventListener('click',function(){
+  var btn=this;btn.textContent='↓ Loading…';
+  fetch('https://res.cloudinary.com/dhjtu3rpo/video/upload/v1773193614/song_nodl2b.mp3')
+    .then(function(r){return r.blob()})
+    .then(function(blob){
+      var url=URL.createObjectURL(blob),a=document.createElement('a');
+      a.href=url;a.download='Pulse.exe — Pixo.mp3';a.click();
+      URL.revokeObjectURL(url);btn.textContent='↓ Download Track';
+    }).catch(function(){btn.textContent='↓ Download Track'});
+});
 
-  function setPlaying(state) {
-    isPlaying = state;
-    playBtn.innerHTML = state ? '&#9646;&#9646;' : '&#9654;';
-    if (state) {
-      playerCard.classList.add('playing');
-      coverWrap.classList.add('playing');
-    } else {
-      playerCard.classList.remove('playing');
-      coverWrap.classList.remove('playing');
-    }
-  }
-
-  // DOWNLOAD
-  document.getElementById('download-btn').addEventListener('click', function() {
-    var btn = document.getElementById('download-btn');
-    btn.textContent = 'Downloading...';
-    fetch('https://res.cloudinary.com/dhjtu3rpo/video/upload/v1773193614/song_nodl2b.mp3')
-      .then(function(r) { return r.blob(); })
-      .then(function(blob) {
-        var url = URL.createObjectURL(blob);
-        var a = document.createElement('a');
-        a.href = url;
-        a.download = 'Pulse.exe - Pixo.mp3';
-        a.click();
-        URL.revokeObjectURL(url);
-        btn.innerHTML = '&#8595; Download Track';
-      });
-  });
-  var likeBtn = document.getElementById('like-btn');
-  var likeNum = document.getElementById('like-num');
-  var liked = false;
-  var likes = 2;
-
-  likeBtn.addEventListener('click', function(e) {
-    e.stopPropagation();
-    liked = !liked;
-    likes += liked ? 1 : -1;
-    likeBtn.innerHTML = liked ? '<span style="color:#ff2df7">&#9829;</span>' : '&#9825;';
-    likeNum.textContent = likes;
-    likeBtn.classList.toggle('liked', liked);
-  });
+document.getElementById('share').addEventListener('click',function(){
+  if(navigator.clipboard)navigator.clipboard.writeText(window.location.href);
+  var btn=this;btn.textContent='✓';setTimeout(function(){btn.textContent='⬆'},1800);
+});
 </script>
 </body>
 </html>
